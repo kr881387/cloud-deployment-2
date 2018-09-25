@@ -1,11 +1,3 @@
-"""This is a trivial example of a gitrepo-based profile; The profile source code and other software, documentation, etc. are stored in in a publicly accessible GIT repository (say, github.com). When you instantiate this profile, the repository is cloned to all of the nodes in your experiment, to `/local/repository`. 
-
-This particular profile is a simple example of using a single raw PC. It can be instantiated on any cluster; the node will boot the default operating system, which is typically a recent version of Ubuntu.
-
-Instructions:
-Wait for the profile instance to start, then click on the node in the topology and choose the `shell` menu item. 
-"""
-
 # Import the Portal object.
 import geni.portal as portal
 # Import the ProtoGENI library.
@@ -17,17 +9,26 @@ pc = portal.Context()
 # Create a Request object to start building the RSpec.
 request = pc.makeRequestRSpec()
  
-# Add a XenVM to the request.
-node = request.XenVM("node")
+#Create Nodes
+for x in range (4):
+     node = request.XenVM("node"+str(x+1))
+                     
+     # Use CENTOS7-64-STD
+     node.disk_image = "urn:publicid:IDN+emulab.net+image+emulab-ops:CENTOS7-64-STD"
 
-# Use CENTOS7-64-STD
-node.disk_image = "urn:publicid:IDN+emulab.net+image+emulab-ops:CENTOS7-64-STD"
+     # Public IP
+     if (x==0): 
+          node.routable_control_ip = "true"
 
-# Public IP
-node.routable_control_ip = "true"
-
-# Install and execute a script that is contained in the repository.
-node.addService(pg.Execute(shell="sh", command="/local/repository/silly.sh"))
-
+     # Install and execute a script that is contained in the repository.
+     node.addService(pg.Execute(shell="sh", command="/local/repository/silly.sh"))
+     
+     #Change IP
+     iface1 = node.addInterface("if"+str(x+1)))
+     iface1.addAddress(rspec.IPv4Address("192.168.1."+str(x+1), "255.255.255.0"))
+     iface1.component_id = "eth"+str(x+1)
+     link = request.LAN("lan")
+     link.addInterface(iface1)
+     
 # Print the RSpec to the enclosing page.
 pc.printRequestRSpec(request)
